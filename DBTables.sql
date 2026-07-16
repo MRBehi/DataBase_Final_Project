@@ -1,0 +1,110 @@
+DROP TABLE IF EXISTS Food.Orders;
+DROP TABLE IF EXISTS Taxi.TaxiLogs;
+DROP TABLE IF EXISTS Taxi.DriverShifts;
+DROP TABLE IF EXISTS Taxi.SavedAddresses;
+DROP TABLE IF EXISTS Taxi.Feedbacks;
+DROP TABLE IF EXISTS Taxi.Payments;
+DROP TABLE IF EXISTS Taxi.Trips;
+DROP TABLE IF EXISTS Taxi.Coupons;
+DROP TABLE IF EXISTS Taxi.Vehicles;
+DROP TABLE IF EXISTS Taxi.Drivers;
+DROP TABLE IF EXISTS Taxi.Passengers;
+
+CREATE TABLE Taxi.Passengers(
+	PassengerId INT IDENTITY (1,1) PRIMARY KEY,
+	FirstName NVARCHAR(50) NOT NULL,
+	LastName NVARCHAR(50) NOT NULL,
+	PhoneNumber CHAR(11) NOT NULL UNIQUE,
+	WalletBalance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+	JoinDAte DATETIME NOT NULL DEFAULT GETDATE(),
+
+);
+
+CREATE TABLE Taxi.Drivers(
+	DriverId INT IDENTITY (1,1) PRIMARY KEY,
+	FirstName VARCHAR(50) NOT NULL,
+	LastName VARCHAR(50) NOT NULL,
+	NationalCode CHAR(10) NOT NULL UNIQUE,
+	PhoneNumber CHAR(11) NOT NULL UNIQUE,
+	[Status] NVARCHAR(20) NOT NULL DEFAULT 'offline' CHECK([Status] IN ('offline', 'busy', 'available')),
+	Rating DECIMAl(3,2) NOT NULL DEFAULT 5.00 CHECK(Rating BETWEEN 1.00 AND 5.00),
+
+);
+
+CREATE TABLE Taxi.Vehicles(
+	VehicleId INT IDENTITY(1,1) PRIMARY KEY,
+	DriverId INT NOT NULL UNIQUE REFERENCES Taxi.Drivers(DriverId) ON DELETE CASCADE,   --Foreign Key
+	LicensePlate CHAR(6) NOT NULL UNIQUE,
+	Model NVARCHAR(20) NOT NULL,
+	Color NVARCHAR(20) NOT NULL,
+	ProductionYear INT NOT NULL
+
+);
+
+CREATE TABLE Taxi.Coupons(
+	CouponId INT IDENTITY(1,1) PRIMARY kEY,
+	Code VARCHAR(20) NOT NULL UNIQUE,
+	DiscountPercentage INT NOT NULL CHECK(DiscountPercentage BETWEEN 1 AND 100),
+	ExpiryDate DATETIME NOT NULL,
+
+);
+
+CREATE TABLE Taxi.Trips(
+	TripId INT IDENTITY(1,1) PRIMARY KEY,
+	------- foreign keys
+	PassengerId INT NOT NULL REFERENCES Taxi.Passengers(PassengerId),
+	DriverId INT NOT NULL REFERENCES Taxi.Drivers(DriverId),
+	CouponId INT UNIQUE REFERENCES Taxi.Coupons(CouponId),
+	-------
+	SourceAddress NVARCHAR(255) NOT NULL,
+	DestinationAddress NVARCHAR(255) NOT NULL,
+	Fare DECIMAL(12,2) NOT NULL,
+	TripStatus NVARCHAR(20) NOT NULL DEFAULT 'requested' 
+		CHECK(TripStatus IN('requested', 'accepted', 'ontrip', 'completed', 'cancelled') ),
+
+	CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+CREATE TABLE Taxi.Payments(
+	TripId INT PRIMARY KEY,
+	Amount DECIMAL(12,2) NOT NULL,
+	PaymentMethod NVARCHAR(20) NOT NULL CHECK(PaymentMethod IN ('cash', 'online' )),
+	PaymentTime DATETIME NOT NULL DEFAULT GETDATE(),
+	FOREIGN KEY(TripId) REFERENCES Taxi.Trips(TripId) ON DELETE CASCADE
+
+);
+
+CREATE TABLE Taxi.Feedbacks(
+    FeedbackId INT IDENTITY(1,1) PRIMARY KEY,
+    TripId INT NOT NULL UNIQUE REFERENCES Taxi.Trips(TripId) ON DELETE CASCADE,
+    Score INT NOT NULL CHECK(Score BETWEEN 1 AND 5), 
+    Comments NVARCHAR(255) DEFAULT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+);
+
+CREATE TABLE Taxi.SavedAddresses(
+    AddressId INT IDENTITY(1,1) PRIMARY KEY,
+    PassengerId INT NOT NULL REFERENCES Taxi.Passengers(PassengerId) ON DELETE CASCADE,
+    Title NVARCHAR(50) NOT NULL, 
+    FullAddress NVARCHAR(255) NOT NULL,
+
+);
+
+CREATE TABLE Taxi.DriverShifts(
+    ShiftId INT IDENTITY(1,1) PRIMARY KEY,
+    DriverId INT NOT NULL REFERENCES Taxi.Drivers(DriverId) ON DELETE CASCADE,
+    StartTime DATETIME NOT NULL DEFAULT GETDATE(),
+    EndTime DATETIME DEFAULT NULL,
+
+);
+
+CREATE TABLE Taxi.TaxiLogs (
+    LogId INT IDENTITY(1,1) PRIMARY KEY,
+    TableName NVARCHAR(30) NOT NULL,
+    OperationType NVARCHAR(20) NOT NULL,
+    OldData NVARCHAR(500) NULL,
+    NewData NVARCHAR(500) NULL,
+    ChangedBy NVARCHAR(100) NOT NULL DEFAULT ORIGINAL_LOGIN(),
+    LogTimestamp DATETIME NOT NULL DEFAULT GETDATE()
+);
