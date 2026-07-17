@@ -53,7 +53,7 @@ CREATE TABLE Taxi.Trips(
 	TripId INT IDENTITY(1,1) PRIMARY KEY,
 	------- foreign keys
 	PassengerId INT NOT NULL REFERENCES Taxi.Passengers(PassengerId),
-	DriverId INT NOT NULL REFERENCES Taxi.Drivers(DriverId),
+	DriverId INT REFERENCES Taxi.Drivers(DriverId),
 	CouponId INT UNIQUE REFERENCES Taxi.Coupons(CouponId),
 	-------
 	SourceAddress NVARCHAR(255) NOT NULL,
