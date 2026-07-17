@@ -41,7 +41,7 @@ AS
 BEGIN
     DECLARE @PassengerId INT;
     DECLARE @DriverId INT;
-    DECLARE @Fare DECIMAL(10, 2);
+    DECLARE @Fare DECIMAL(12, 2);
 
     SELECT @PassengerId = PassengerId, @DriverId = DriverId, @Fare = Fare
     FROM Taxi.Trips
