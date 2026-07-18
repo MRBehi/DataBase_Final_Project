@@ -55,3 +55,19 @@ BEGIN
     RETURN @result;
 END;
 GO
+
+-- function 3 : Returning the full name of the passenger
+CREATE OR ALTER FUNCTION Taxi.f3_getFullName(@passengerId INT)
+RETURNS NVARCHAR(100)
+AS
+BEGIN
+    DECLARE @FullName NVARCHAR(100);
+
+    SET @FullName = (
+        SELECT FirstName + ' ' + LastName 
+        FROM Taxi.Passengers 
+        WHERE PassengerId = @passengerId
+    );
+
+    RETURN @FullName;
+END;

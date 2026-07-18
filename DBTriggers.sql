@@ -1,3 +1,5 @@
+-- Trigger 1 : Shows the details of any change on Taxi.Passengers
+
 CREATE OR ALTER TRIGGER Taxi.trg_Passengers ON Taxi.Passengers
 AFTER INSERT, UPDATE, DELETE
 AS
@@ -43,4 +45,23 @@ BEGIN
 			INNER JOIN deleted d ON i.PassengerId = d.PassengerId;
 		END
 
+END;
+
+GO
+
+-- Trigger 2 : Changes the drivers status to busy after accepting a trip
+CREATE OR ALTER TRIGGER Taxi.trg_afterTripInsert ON Taxi.Trips
+AFTER INSERT
+AS
+BEGIN
+    DECLARE @DriverId INT;
+    
+    SELECT @DriverId = DriverId FROM inserted;
+
+    IF @DriverId IS NOT NULL
+    BEGIN
+        UPDATE Taxi.Drivers
+        SET [Status] = 'busy'
+        WHERE DriverId = @DriverId;
+    END
 END;
