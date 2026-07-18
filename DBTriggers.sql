@@ -65,3 +65,25 @@ BEGIN
         WHERE DriverId = @DriverId;
     END
 END;
+
+GO
+
+-- Trigger 3 : Connecting Taxi to Food
+CREATE OR ALTER TRIGGER Taxi.trg_SendToFood
+ON Taxi.Deliveries
+AFTER UPDATE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM inserted WHERE DeliveryStatus = 'Completed')
+    BEGIN
+        UPDATE Food.TaxiFoodDeliveries
+        SET FoodDeliveryStatus = 'Delivered'
+        WHERE FoodDeliverId IN (SELECT FoodDeliverId FROM inserted WHERE DeliveryStatus = 'Completed');
+
+        INSERT INTO Food.OrderStatusHistory (OrderID, Status)
+        SELECT d.OrderId, 'Delivered by Taxi'
+        FROM inserted i
+        JOIN Food.TaxiFoodDeliveries d ON i.FoodDeliverId = d.FoodDeliverId
+        WHERE i.DeliveryStatus = 'Completed';
+    END
+END;

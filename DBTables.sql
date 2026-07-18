@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS Food.Orders;
+DROP TABLE IF EXISTS Taxi.Deliveries;
 DROP TABLE IF EXISTS Taxi.TaxiLogs;
 DROP TABLE IF EXISTS Taxi.DriverShifts;
 DROP TABLE IF EXISTS Taxi.SavedAddresses;
@@ -107,4 +107,12 @@ CREATE TABLE Taxi.TaxiLogs (
     NewData NVARCHAR(500) NULL,
     ChangedBy NVARCHAR(100) NOT NULL DEFAULT ORIGINAL_LOGIN(),
     LogTimestamp DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+CREATE TABLE Taxi.Deliveries (
+    DeliveryId INT IDENTITY(1,1) PRIMARY KEY,
+    FoodDeliverId INT NOT NULL,
+    DriverId INT DEFAULT NULL REFERENCES Taxi.Drivers(DriverId),
+    DeliveryStatus NVARCHAR(20) DEFAULT 'Requested'
+
 );
